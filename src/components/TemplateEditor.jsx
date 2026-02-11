@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 const TIMING_OPTIONS = ['< 30 min', '30-60 min', '1-2 hours', '3-4 hours'];
 const MEAL_TYPE_OPTIONS = ['top_up', 'snack', 'full_meal'];
@@ -24,7 +24,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   }, []);
 
   async function loadFoodCatalog() {
-    const { data } = await getClient()
+    const { data } = await supabase
       .from('template_foods')
       .select('*')
       .eq('is_active', true)
@@ -112,9 +112,9 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
     }
 
     if (form.id) {
-      await getClient().from('templates').update(payload).eq('id', form.id);
+      await supabase.from('templates').update(payload).eq('id', form.id);
     } else {
-      await getClient().from('templates').insert(payload);
+      await supabase.from('templates').insert(payload);
     }
 
     onSave();

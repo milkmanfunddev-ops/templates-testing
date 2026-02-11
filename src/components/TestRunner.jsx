@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { scaleTemplate, preWorkoutCarbTarget } from '../lib/scaling';
 import { calculatePreWorkoutMacros } from '../lib/macrosV3';
 import { isTemplateEligible, PRESET_PROFILES } from '../lib/dietFilter';
@@ -33,8 +33,8 @@ export default function TestRunner() {
   async function loadData() {
     setLoading(true);
     const [tRes, fRes] = await Promise.all([
-      getClient().from('templates').select('*').eq('is_active', true).order('sort_order'),
-      getClient().from('template_foods').select('*').eq('is_active', true).order('name'),
+      supabase.from('templates').select('*').eq('is_active', true).order('sort_order'),
+      supabase.from('template_foods').select('*').eq('is_active', true).order('name'),
     ]);
     setTemplates(tRes.data || []);
     setFoods(fRes.data || []);

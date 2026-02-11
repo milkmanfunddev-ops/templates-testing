@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export default function FoodsCatalog() {
   const [foods, setFoods] = useState([]);
@@ -12,7 +12,7 @@ export default function FoodsCatalog() {
 
   async function loadFoods() {
     setLoading(true);
-    const { data, error } = await getClient()
+    const { data, error } = await supabase
       .from('template_foods')
       .select('*')
       .eq('is_active', true)
@@ -38,9 +38,9 @@ export default function FoodsCatalog() {
 
   async function handleSave(food) {
     if (food.id) {
-      await getClient().from('template_foods').update(food).eq('id', food.id);
+      await supabase.from('template_foods').update(food).eq('id', food.id);
     } else {
-      await getClient().from('template_foods').insert(food);
+      await supabase.from('template_foods').insert(food);
     }
     setEditing(null);
     loadFoods();
@@ -48,7 +48,7 @@ export default function FoodsCatalog() {
 
   async function handleDelete(id) {
     if (!confirm('Soft-delete this food?')) return;
-    await getClient().from('template_foods').update({ is_active: false }).eq('id', id);
+    await supabase.from('template_foods').update({ is_active: false }).eq('id', id);
     loadFoods();
   }
 

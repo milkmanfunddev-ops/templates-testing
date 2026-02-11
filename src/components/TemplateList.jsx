@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import TemplateEditor from './TemplateEditor';
 
 const TIMING_FILTERS = ['All', '< 30 min', '30-60 min', '1-2 hours', '3-4 hours'];
@@ -15,7 +15,7 @@ export default function TemplateList() {
 
   async function loadTemplates() {
     setLoading(true);
-    const { data, error } = await getClient()
+    const { data, error } = await supabase
       .from('templates')
       .select('*')
       .eq('is_active', true)
@@ -28,7 +28,7 @@ export default function TemplateList() {
 
   async function handleDelete(id) {
     if (!confirm('Soft-delete this template?')) return;
-    await getClient().from('templates').update({ is_active: false }).eq('id', id);
+    await supabase.from('templates').update({ is_active: false }).eq('id', id);
     loadTemplates();
   }
 
@@ -36,7 +36,7 @@ export default function TemplateList() {
     const { id, created_at, updated_at, ...rest } = template;
     rest.name = rest.name + ' (copy)';
     rest.slug = rest.slug + '-copy-' + Date.now();
-    await getClient().from('templates').insert(rest);
+    await supabase.from('templates').insert(rest);
     loadTemplates();
   }
 
