@@ -1,0 +1,558 @@
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border: #e0e0dc;
+  --text: #1a1a18;
+  --text-muted: #666660;
+  --accent: #2563eb;
+  --pass: #059669;
+  --fail: #dc2626;
+  --warn: #d97706;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.config-btn {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.config-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.config-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.config-panel input {
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+}
+
+.tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.tabs button:hover {
+  color: var(--text);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+th {
+  background: #f5f5f0;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid #f0f0ec;
+}
+
+tr:hover td {
+  background: #f8f8f5;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { opacity: 0.9; color: white; }
+.btn-danger { color: var(--fail); }
+.btn-danger:hover { border-color: var(--fail); }
+.btn-sm { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+
+/* Forms */
+input, select, textarea {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+}
+
+/* Panels */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel h2 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel h3 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+/* Flex */
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-sm { gap: 0.5rem; }
+.gap-md { gap: 0.75rem; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.badge-pass { background: #d1fae5; color: var(--pass); }
+.badge-fail { background: #fee2e2; color: var(--fail); }
+.badge-warn { background: #fef3c7; color: var(--warn); }
+.badge-info { background: #dbeafe; color: var(--accent); }
+
+/* Macro output boxes */
+.macro-box {
+  background: #f8f8f5;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.macro-box h4 {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.macro-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.macro-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.toolbar select, .toolbar input {
+  font-size: 0.8rem;
+}
+
+/* Filter chips */
+.filter-chips {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.filter-chip.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  margin-bottom: 1rem;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+/* Diff display */
+.diff-positive { color: var(--fail); }
+.diff-negative { color: var(--pass); }
+.diff-ok { color: var(--text-muted); }
+
+/* Validation heatmap */
+.heatmap-cell {
+  width: 2.5rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 3px;
+  margin: 1px;
+}
+
+/* ============================================================================
+   USER PROFILE
+   ============================================================================ */
+
+.user-profile h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.preset-row {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.allergen-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.allergen-check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.allergen-check input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.excluded-pills {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  background: #fee2e2;
+  color: var(--fail);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background: #fca5a5;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-row label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   PHASE DIAGRAM
+   ============================================================================ */
+
+.phase-diagram {
+  display: flex;
+  gap: 2px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.phase-bar {
+  padding: 0.5rem;
+  text-align: center;
+  min-width: 60px;
+}
+
+.phase-bar.phase-full_meal {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.phase-bar.phase-snack {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.phase-bar.phase-top_up {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.phase-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.phase-pct {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.phase-carbs {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   COMBO CARDS
+   ============================================================================ */
+
+.combo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.combo-card:hover {
+  border-color: var(--accent);
+}
+
+.combo-phase {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  margin: 0.15rem 0;
+  font-size: 0.8rem;
+}
+
+.combo-phase.phase-full_meal { background: #eff6ff; }
+.combo-phase.phase-snack { background: #ecfdf5; }
+.combo-phase.phase-top_up { background: #fffbeb; }
+
+.combo-foods-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.food-qty {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(0,0,0,0.04);
+  border-radius: 3px;
+}
+
+.food-qty-macros {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  margin-left: 0.15rem;
+}
+
+/* ============================================================================
+   TEST RUNNER
+   ============================================================================ */
+
+.test-category {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.test-category h3 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.test-item {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin: 0.15rem 0;
+  font-size: 0.8rem;
+}
+
+.test-pass { color: var(--pass); }
+.test-fail { color: var(--fail); background: #fee2e2; }
+
+.progress-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
