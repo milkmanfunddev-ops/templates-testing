@@ -4,6 +4,7 @@ import { scaleTemplate, preWorkoutCarbTarget, analyzeScaleGroups } from '../lib/
 import { calculatePreWorkoutMacros } from '../lib/macrosV3';
 import { isTemplateEligible, PRESET_PROFILES } from '../lib/dietFilter';
 import { PHASE_SCHEDULE, getMealChainTargets, findBestCombos, getEligibleTemplatesPerPhase } from '../lib/mealChain';
+import { DRINK_POOL, getEligibleDrinksForPhase, selectDrinkForPhase } from '../lib/drinkSelection';
 
 const PERSONAS = [
   { label: '54 kg', weightKg: 54 },
@@ -81,6 +82,9 @@ export default function TestRunner() {
 
     // 11. Scale Group Proportional Scaling
     categories.push(runScaleGroupProportional(templates));
+
+    // 12. Drink Selection Coverage & Accuracy
+    categories.push(runDrinkSelection(templates));
 
     setResults(categories);
     setRunning(false);
@@ -490,4 +494,142 @@ function runScaleGroupProportional(templates) {
   }
 
   return { name: '11. Scale Group Proportional Scaling', tests };
+}
+
+function runDrinkSelection(templates) {
+  const tests = [];
+  const profile = { diet: 'omnivore', allergens: [], excludedFoods: [] };
+
+  // Test: All drinks in pool have valid phase assignments
+  tests.push({
+    name: 'All drinks have valid phase assignments',
+    pass: DRINK_POOL.every(d =>
+      d.validPhases.length > 0 &&
+      d.validPhases.every(p => ['full_meal', 'snack', 'top_up'].includes(p))
+    ),
+  });
+
+  // Test: Each phase has at least 2 eligible drinks (omnivore)
+  for (const phase of ['full_meal', 'snack', 'top_up']) {
+    const eligible = getEligibleDrinksForPhase(phase, profile);
+    tests.push({
+      name: `${phase}: at least 2 eligible drinks`,
+      pass: eligible.length >= 2,
+      detail: `${eligible.length} drinks: ${eligible.map(d => d.name).join(', ')}`,
+    });
+  }
+
+  // Test: Dairy-free profile excludes dairy drinks
+  const dairyFreeProfile = { diet: 'omnivore', allergens: ['dairy'], excludedFoods: [] };
+  const dairyDrinks = DRINK_POOL.filter(d => d.allergens && d.allergens.includes('dairy'));
+  const dairyFreeEligible = getEligibleDrinksForPhase('full_meal', dairyFreeProfile);
+  const dairyInResults = dairyFreeEligible.filter(d => d.allergens && d.allergens.includes('dairy'));
+  tests.push({
+    name: 'Dairy-free profile excludes dairy drinks',
+    pass: dairyInResults.length === 0,
+    detail: dairyDrinks.length > 0
+      ? `${dairyDrinks.map(d => d.name).join(', ')} correctly excluded`
+      : 'No dairy drinks in pool',
+  });
+
+  // Test: Hydration & sodium accuracy across personas and timings
+  for (const persona of PERSONAS) {
+    for (const timingKey of MULTI_PHASE_TIMINGS) {
+      const combos = findBestCombos(templates, profile, persona.weightKg, timingKey, 'medium', 'moderate', 5);
+      if (combos.length === 0) {
+        tests.push({
+          name: `${persona.label} / ${timingKey}: drink selection`,
+          pass: false,
+          detail: 'No combos found',
+        });
+        continue;
+      }
+
+      const best = combos[0];
+      const targets = getMealChainTargets(persona.weightKg, timingKey, 'medium', 'moderate');
+
+      // Hydration accuracy: food+drink fluid within +/-20% of target
+      const totalFluid = best.chain.reduce(
+        (s, c) => s + c.scaled.actualFluid + (c.drink ? c.drink.fluid : 0), 0
+      );
+      const hydPct = targets.totalHydration > 0
+        ? Math.abs(totalFluid - targets.totalHydration) / targets.totalHydration
+        : 0;
+      tests.push({
+        name: `${persona.label} / ${timingKey}: hydration within +/-20%`,
+        pass: hydPct <= 0.20,
+        detail: `${Math.round(totalFluid)}ml / ${targets.totalHydration}ml (${(hydPct * 100).toFixed(1)}% off)`,
+      });
+
+      // Sodium accuracy: food+drink sodium within +/-25% of target
+      const totalSodium = best.chain.reduce(
+        (s, c) => s + c.scaled.actualSodium + (c.drink ? c.drink.sodium : 0), 0
+      );
+      const sodPct = targets.totalSodium > 0
+        ? Math.abs(totalSodium - targets.totalSodium) / targets.totalSodium
+        : 0;
+      tests.push({
+        name: `${persona.label} / ${timingKey}: sodium within +/-25%`,
+        pass: sodPct <= 0.25,
+        detail: `${Math.round(totalSodium)}mg / ${targets.totalSodium}mg (${(sodPct * 100).toFixed(1)}% off)`,
+      });
+    }
+  }
+
+  // Test: Drink variety — no single drink > 60% of selections across top 5 combos
+  const variantCounts = {};
+  let totalDrinkSelections = 0;
+  for (const persona of PERSONAS) {
+    for (const timingKey of MULTI_PHASE_TIMINGS) {
+      const combos = findBestCombos(templates, profile, persona.weightKg, timingKey, 'medium', 'moderate', 5);
+      for (const combo of combos) {
+        for (const item of combo.chain) {
+          if (item.drink) {
+            const name = item.drink.drink.name;
+            variantCounts[name] = (variantCounts[name] || 0) + 1;
+            totalDrinkSelections++;
+          }
+        }
+      }
+    }
+  }
+  if (totalDrinkSelections > 0) {
+    const maxPct = Math.max(...Object.values(variantCounts)) / totalDrinkSelections;
+    const topDrink = Object.entries(variantCounts).sort((a, b) => b[1] - a[1])[0];
+    tests.push({
+      name: 'Drink variety: no single drink > 60% of selections',
+      pass: maxPct <= 0.60,
+      detail: `${topDrink[0]}: ${(maxPct * 100).toFixed(1)}% of ${totalDrinkSelections} selections`,
+    });
+  } else {
+    tests.push({
+      name: 'Drink variety: no drink selections found',
+      pass: false,
+      detail: 'No drinks were selected in any combo',
+    });
+  }
+
+  // Test: Phase validity — all selected drinks valid for their assigned phases
+  let allValid = true;
+  let invalidDetails = [];
+  for (const persona of PERSONAS.slice(0, 2)) { // Just test 2 personas
+    for (const timingKey of MULTI_PHASE_TIMINGS) {
+      const combos = findBestCombos(templates, profile, persona.weightKg, timingKey, 'medium', 'moderate', 5);
+      for (const combo of combos) {
+        for (const item of combo.chain) {
+          if (item.drink && !item.drink.drink.validPhases.includes(item.phase.mealType)) {
+            allValid = false;
+            invalidDetails.push(`${item.drink.drink.name} in ${item.phase.mealType}`);
+          }
+        }
+      }
+    }
+  }
+  tests.push({
+    name: 'All selected drinks valid for their assigned phases',
+    pass: allValid,
+    detail: allValid ? undefined : `Invalid: ${invalidDetails.join(', ')}`,
+  });
+
+  return { name: '12. Drink Selection Coverage & Accuracy', tests };
 }

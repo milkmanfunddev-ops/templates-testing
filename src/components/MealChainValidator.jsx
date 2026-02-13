@@ -126,9 +126,9 @@ export default function MealChainValidator({ templates, foods, profile: external
               <h3 style={{ marginBottom: '0.5rem' }}>Top {combos.length} Combos</h3>
               {combos.map((combo, idx) => {
                 const isExpanded = expandedCombo === idx;
-                const totalCarbs = combo.chain.reduce((s, c) => s + c.scaled.actualCarbs, 0);
-                const totalFluid = combo.chain.reduce((s, c) => s + c.scaled.actualFluid, 0);
-                const totalSodium = combo.chain.reduce((s, c) => s + c.scaled.actualSodium, 0);
+                const totalCarbs = combo.chain.reduce((s, c) => s + c.scaled.actualCarbs + (c.drink ? c.drink.carbs : 0), 0);
+                const totalFluid = combo.chain.reduce((s, c) => s + c.scaled.actualFluid + (c.drink ? c.drink.fluid : 0), 0);
+                const totalSodium = combo.chain.reduce((s, c) => s + c.scaled.actualSodium + (c.drink ? c.drink.sodium : 0), 0);
                 const v = combo.validation.details;
 
                 return (
@@ -148,31 +148,48 @@ export default function MealChainValidator({ templates, foods, profile: external
                       </span>
                     </div>
 
-                    {/* Per-phase summary with food quantities */}
+                    {/* Per-phase summary with food quantities + drink */}
                     <div style={{ marginTop: '0.5rem' }}>
-                      {combo.chain.map((item, pi) => (
-                        <div key={pi} className={`combo-phase phase-${item.phase.role}`}>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <strong>{item.phase.role}:</strong> {item.template.name}
-                              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                                ({Math.round(item.scaled.actualCarbs)}g / {item.phase.carbTarget}g carbs)
-                              </span>
-                            </div>
-                          </div>
-                          {/* Inline food quantities */}
-                          <div className="combo-foods-inline">
-                            {item.scaled.scaledFoods.map((sf, fi) => (
-                              <span key={fi} className="food-qty">
-                                {formatFriendlyQuantity(sf.scaled_servings)} {sf.serving_size} {sf.display_name}
-                                <span className="food-qty-macros">
-                                  ({(sf.carbs_g * sf.scaled_servings).toFixed(0)}g carb, {((sf.fluid_ml || 0) * sf.scaled_servings).toFixed(0)}ml, {(sf.sodium_mg * sf.scaled_servings).toFixed(0)}mg Na)
+                      {combo.chain.map((item, pi) => {
+                        const phaseCarbs = item.scaled.actualCarbs + (item.drink ? item.drink.carbs : 0);
+                        return (
+                          <div key={pi} className={`combo-phase phase-${item.phase.role}`}>
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <strong>{item.phase.role}:</strong> {item.template.name}
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
+                                  ({Math.round(phaseCarbs)}g / {item.phase.carbTarget}g carbs)
                                 </span>
-                              </span>
-                            ))}
+                              </div>
+                            </div>
+                            {/* Inline food quantities */}
+                            <div className="combo-foods-inline">
+                              {item.scaled.scaledFoods.map((sf, fi) => (
+                                <span key={fi} className="food-qty">
+                                  {formatFriendlyQuantity(sf.scaled_servings)} {sf.serving_size} {sf.display_name}
+                                  <span className="food-qty-macros">
+                                    ({(sf.carbs_g * sf.scaled_servings).toFixed(0)}g carb, {((sf.fluid_ml || 0) * sf.scaled_servings).toFixed(0)}ml, {(sf.sodium_mg * sf.scaled_servings).toFixed(0)}mg Na)
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
+                            {/* Drink line */}
+                            {item.drink && (
+                              <div style={{
+                                borderLeft: '3px solid var(--accent)',
+                                paddingLeft: '0.5rem',
+                                marginTop: '0.25rem',
+                                fontSize: '0.8rem',
+                              }}>
+                                <span style={{ fontWeight: 600 }}>+ {item.drink.servings} {item.drink.drink.serving_size} {item.drink.drink.name}</span>
+                                <span className="food-qty-macros" style={{ marginLeft: '0.5rem' }}>
+                                  ({Math.round(item.drink.carbs)}g carb, {Math.round(item.drink.fluid)}ml, {Math.round(item.drink.sodium)}mg Na)
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Variety indicator */}
@@ -186,18 +203,21 @@ export default function MealChainValidator({ templates, foods, profile: external
                       ) : null;
                     })()}
 
-                    {/* Expanded detail — full table with all macros */}
+                    {/* Expanded detail -- full table with all macros */}
                     {isExpanded && (
                       <div onClick={e => e.stopPropagation()} style={{ marginTop: '0.75rem' }}>
                         {combo.chain.map((item, pi) => {
-                          const phaseFluid = item.scaled.scaledFoods.reduce((s, f) => s + (f.fluid_ml || 0) * f.scaled_servings, 0);
-                          const phaseSodium = item.scaled.scaledFoods.reduce((s, f) => s + f.sodium_mg * f.scaled_servings, 0);
+                          const phaseFluid = item.scaled.scaledFoods.reduce((s, f) => s + (f.fluid_ml || 0) * f.scaled_servings, 0)
+                            + (item.drink ? item.drink.fluid : 0);
+                          const phaseSodium = item.scaled.scaledFoods.reduce((s, f) => s + f.sodium_mg * f.scaled_servings, 0)
+                            + (item.drink ? item.drink.sodium : 0);
+                          const phaseCarbs = item.scaled.actualCarbs + (item.drink ? item.drink.carbs : 0);
                           return (
                             <div key={pi} style={{ marginBottom: '0.75rem' }}>
                               <h5>
                                 {item.phase.role}: {item.template.name}
                                 <span style={{ fontWeight: 400, fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
-                                  Totals: {Math.round(item.scaled.actualCarbs)}g carbs | {Math.round(phaseFluid)}ml fluid | {Math.round(phaseSodium)}mg Na
+                                  Totals: {Math.round(phaseCarbs)}g carbs | {Math.round(phaseFluid)}ml fluid | {Math.round(phaseSodium)}mg Na
                                 </span>
                               </h5>
                               <table>
@@ -243,6 +263,22 @@ export default function MealChainValidator({ templates, foods, profile: external
                                       </tr>
                                     );
                                   })}
+                                  {/* Drink row */}
+                                  {item.drink && (
+                                    <tr style={{ backgroundColor: 'rgba(var(--accent-rgb, 0, 150, 136), 0.08)' }}>
+                                      <td><strong>+ {item.drink.drink.name}</strong></td>
+                                      <td><strong>{item.drink.servings}</strong> {item.drink.drink.serving_size}</td>
+                                      <td>-</td>
+                                      <td>-</td>
+                                      <td>{item.drink.drink.maxServings}</td>
+                                      <td>{item.drink.carbs.toFixed(1)}g</td>
+                                      <td>-</td>
+                                      <td>-</td>
+                                      <td>{Math.round(item.drink.fluid)}ml</td>
+                                      <td>{Math.round(item.drink.sodium)}mg</td>
+                                      <td>-</td>
+                                    </tr>
+                                  )}
                                 </tbody>
                               </table>
                             </div>
