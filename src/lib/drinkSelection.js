@@ -141,7 +141,7 @@ export const DRINK_POOL = [
     carbs_g: 40, sodium_mg: 200, fluid_ml: 500,
     validPhases: ['snack', 'top_up'],
     maxServings: 2,
-    serving_size: 'serving',
+    serving_size: 'scoop',
   },
 ];
 
@@ -268,9 +268,13 @@ export function selectDrinkForPhase(phase, scaledFoodResult, sodiumTarget, fluid
       idealServings = Math.max(idealServings, sodiumGap / drink.sodium_mg);
     }
 
-    // Clamp to max and snap to 0.5 increments
+    // Clamp to max and snap to friendly increments
+    // Cups can be halved; bottles/scoops/packets snap to whole numbers
     idealServings = Math.min(idealServings, drink.maxServings);
-    const servings = Math.max(0.5, Math.round(idealServings * 2) / 2);
+    const wholeOnly = ['bottle', 'packet', 'scoop', 'tablet'].includes(drink.serving_size);
+    const servings = wholeOnly
+      ? Math.max(1, Math.round(idealServings))
+      : Math.max(0.5, Math.round(idealServings * 2) / 2);
     const finalServings = Math.min(servings, drink.maxServings);
 
     // Calculate what this drink provides
