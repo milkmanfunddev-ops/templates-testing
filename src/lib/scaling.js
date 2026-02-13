@@ -259,9 +259,13 @@ export function scaleTemplate(foods, targetCarbsG, hydrationTargetMl = null, sod
     }
   });
 
-  // If no scale groups, use the original algorithm (faster, well-tested)
+  // If no scale groups, treat ALL foods as one group (proportional recipe scaling).
+  // This ensures all items in a template scale together by the same multiplier,
+  // e.g. 2 pancakes + 2 tbsp syrup + 1 banana all scale by 1.5x together.
   if (groupMap.size === 0) {
-    return scaleTemplateOriginal(foods, targetCarbsG, hydrationTargetMl, sodiumTargetMg);
+    const allItems = foods.map((f, i) => ({ food: f, originalIndex: i }));
+    groupMap.set('_recipe', allItems);
+    independentItems.length = 0;
   }
 
   // Build search dimensions:
