@@ -17,10 +17,9 @@
  * Categories:
  *   plain      — zero/low-calorie hydration (water, coffee)
  *   breakfast   — common morning beverages (juice, milk, smoothie)
- *   carb_mix    — engineered carb drink mixes (Maurten, Tailwind, etc.)
- *   sports      — commercial sports drinks (Gatorade, Powerade)
- *   electrolyte — sodium-focused hydration (LMNT, Nuun, Liquid IV)
  *   alt_milk    — plant-based milks (oat, almond, coconut water)
+ *   hydration   — water + electrolyte combinations
+ *   carb_drink  — generic carb-containing training drinks
  */
 export const DRINK_POOL = [
   // ── Plain / Zero-Cal ──────────────────────────────────────────────
@@ -114,145 +113,35 @@ export const DRINK_POOL = [
     serving_size: 'cup',
   },
 
-  // ── Carb Drink Mixes ──────────────────────────────────────────────
+  // ── Hydration (water + electrolytes) ──────────────────────────────
   {
-    id: 'maurten_160',
-    name: 'Maurten Drink Mix 160',
-    category: 'carb_mix',
-    carbs_g: 40, sodium_mg: 160, fluid_ml: 500,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'packet',
-  },
-  {
-    id: 'maurten_320',
-    name: 'Maurten Drink Mix 320',
-    category: 'carb_mix',
-    carbs_g: 80, sodium_mg: 160, fluid_ml: 500,
-    validPhases: ['snack'],
-    maxServings: 1,
-    serving_size: 'packet',
-  },
-  {
-    id: 'tailwind',
-    name: 'Tailwind Endurance Fuel',
-    category: 'carb_mix',
-    carbs_g: 25, sodium_mg: 303, fluid_ml: 350,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 3,
-    serving_size: 'scoop',
-  },
-  {
-    id: 'skratch',
-    name: 'Skratch Labs Hydration Mix',
-    category: 'carb_mix',
-    carbs_g: 20, sodium_mg: 400, fluid_ml: 500,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'scoop',
-  },
-  {
-    id: 'sis_go_energy',
-    name: 'SiS GO Energy',
-    category: 'carb_mix',
-    carbs_g: 36, sodium_mg: 240, fluid_ml: 500,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'serving',
-  },
-  {
-    id: 'ucan_superstarch',
-    name: 'UCAN SuperStarch',
-    category: 'carb_mix',
-    carbs_g: 27, sodium_mg: 170, fluid_ml: 400,
-    validPhases: ['full_meal', 'snack'],
-    maxServings: 2,
-    serving_size: 'packet',
-  },
-
-  // ── Sports Drinks ─────────────────────────────────────────────────
-  {
-    id: 'gatorade',
-    name: 'Gatorade',
-    category: 'sports',
-    carbs_g: 34, sodium_mg: 270, fluid_ml: 591,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'bottle',
-  },
-  {
-    id: 'gatorade_endurance',
-    name: 'Gatorade Endurance',
-    category: 'sports',
-    carbs_g: 22, sodium_mg: 300, fluid_ml: 240,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 4,
-    serving_size: 'cup',
-  },
-  {
-    id: 'powerade',
-    name: 'Powerade',
-    category: 'sports',
-    carbs_g: 21, sodium_mg: 240, fluid_ml: 355,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 3,
-    serving_size: 'cup',
-  },
-
-  // ── Electrolyte / Sodium-Focused ──────────────────────────────────
-  {
-    id: 'nuun_sport',
-    name: 'Nuun Sport',
-    category: 'electrolyte',
+    id: 'water_with_electrolytes',
+    name: 'Water with Electrolytes',
+    category: 'hydration',
     carbs_g: 4, sodium_mg: 300, fluid_ml: 500,
     validPhases: ['snack', 'top_up'],
     maxServings: 3,
-    serving_size: 'tablet',
+    serving_size: 'bottle',
   },
+
+  // ── Carb Drinks ───────────────────────────────────────────────────
   {
-    id: 'lmnt',
-    name: 'LMNT',
-    category: 'electrolyte',
-    carbs_g: 0, sodium_mg: 1000, fluid_ml: 500,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'packet',
-  },
-  {
-    id: 'liquid_iv',
-    name: 'Liquid IV',
-    category: 'electrolyte',
-    carbs_g: 11, sodium_mg: 500, fluid_ml: 500,
-    validPhases: ['snack', 'top_up'],
-    maxServings: 2,
-    serving_size: 'packet',
-  },
-  {
-    id: 'pedialyte',
-    name: 'Pedialyte',
-    category: 'electrolyte',
-    carbs_g: 6, sodium_mg: 252, fluid_ml: 240,
+    id: 'sports_drink',
+    name: 'Sports Drink',
+    category: 'carb_drink',
+    carbs_g: 21, sodium_mg: 250, fluid_ml: 355,
     validPhases: ['snack', 'top_up'],
     maxServings: 3,
     serving_size: 'cup',
   },
   {
-    id: 'precision_hydration_1000',
-    name: 'Precision Hydration PH 1000',
-    category: 'electrolyte',
-    carbs_g: 17, sodium_mg: 500, fluid_ml: 500,
+    id: 'carb_drink_mix',
+    name: 'Carb Drink Mix',
+    category: 'carb_drink',
+    carbs_g: 40, sodium_mg: 200, fluid_ml: 500,
     validPhases: ['snack', 'top_up'],
     maxServings: 2,
-    serving_size: 'packet',
-  },
-  {
-    id: 'precision_hydration_1500',
-    name: 'Precision Hydration PH 1500',
-    category: 'electrolyte',
-    carbs_g: 15, sodium_mg: 750, fluid_ml: 500,
-    validPhases: ['top_up'],
-    maxServings: 1,
-    serving_size: 'packet',
+    serving_size: 'serving',
   },
 ];
 
@@ -275,12 +164,9 @@ export const AVG_DRINK_CARBS_PER_PHASE = {
 const BEVERAGE_NAMES = new Set([
   'water', 'coffee', 'orange juice', 'oj', 'milk', 'whole milk',
   'chocolate milk', 'smoothie', 'fruit smoothie', 'sports drink',
-  'gatorade', 'gatorade endurance', 'powerade', 'electrolyte mix',
-  'electrolyte drink', 'juice', 'apple juice', 'latte', 'tea',
-  'green tea', 'oat milk', 'almond milk', 'coconut water',
-  'maurten', 'tailwind', 'skratch', 'sis go energy',
-  'nuun', 'nuun sport', 'lmnt', 'liquid iv', 'pedialyte',
-  'precision hydration', 'ucan', 'ucan superstarch',
+  'electrolyte mix', 'electrolyte drink', 'juice', 'apple juice',
+  'latte', 'tea', 'green tea', 'oat milk', 'almond milk',
+  'coconut water', 'carb drink mix', 'water with electrolytes',
 ]);
 
 /**
@@ -290,7 +176,7 @@ export function isBeverage(food) {
   const name = (food.display_name || food.name || '').toLowerCase().trim();
   if (BEVERAGE_NAMES.has(name)) return true;
   // Also match partial patterns
-  if (/\b(juice|milk|smoothie|coffee|tea|gatorade|powerade|latte|drink|maurten|tailwind|skratch|nuun|lmnt|pedialyte|electrolyte|hydration mix)\b/i.test(name)) return true;
+  if (/\b(juice|milk|smoothie|coffee|tea|latte|sports drink|electrolyte|carb drink)\b/i.test(name)) return true;
   return false;
 }
 
