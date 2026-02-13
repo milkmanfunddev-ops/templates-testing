@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { scaleTemplate, preWorkoutCarbTarget } from '../lib/scaling';
+import { scaleTemplate, preWorkoutCarbTarget, analyzeScaleGroups } from '../lib/scaling';
 import { calculatePreWorkoutMacros } from '../lib/macrosV3';
 import { isTemplateEligible, PRESET_PROFILES } from '../lib/dietFilter';
 import { PHASE_SCHEDULE, getMealChainTargets, findBestCombos, getEligibleTemplatesPerPhase } from '../lib/mealChain';
@@ -18,7 +18,7 @@ const TIMINGS = [
   { label: '3.0h', hoursBefore: 3.0 },
 ];
 
-const MULTI_PHASE_TIMINGS = ['3-4 hours', '1-2 hours'];
+const MULTI_PHASE_TIMINGS = ['3-4 hours', '1.5-3 hours'];
 
 export default function TestRunner() {
   const [templates, setTemplates] = useState([]);
@@ -78,6 +78,9 @@ export default function TestRunner() {
 
     // 10. Hydration & Sodium Validation
     categories.push(runHydrationSodium(templates));
+
+    // 11. Scale Group Proportional Scaling
+    categories.push(runScaleGroupProportional(templates));
 
     setResults(categories);
     setRunning(false);
@@ -158,7 +161,7 @@ function runDataIntegrity(templates, foods) {
 
   tests.push({
     name: 'All templates have valid timing_window',
-    pass: templates.every(t => ['< 30 min', '30-60 min', '1-2 hours', '3-4 hours'].includes(t.timing_window)),
+    pass: templates.every(t => ['< 30 min', '30-90 min', '1.5-3 hours', '3-4 hours'].includes(t.timing_window)),
   });
 
   tests.push({
@@ -419,4 +422,72 @@ function runHydrationSodium(templates) {
   }
 
   return { name: '10. Hydration & Sodium Validation', tests };
+}
+
+function runScaleGroupProportional(templates) {
+  const tests = [];
+  const grouped = templates.filter(t => {
+    const { hasGroups } = analyzeScaleGroups(t.foods || []);
+    return hasGroups;
+  });
+
+  tests.push({
+    name: `${grouped.length} templates have scale groups`,
+    pass: true,
+    detail: grouped.length === 0 ? 'No scale groups defined yet — test is informational' : undefined,
+  });
+
+  // For each grouped template, verify proportional scaling at multiple targets
+  for (const t of grouped) {
+    const foods = t.foods || [];
+    const { groups } = analyzeScaleGroups(foods);
+
+    for (const [groupName, groupInfo] of groups) {
+      // Verify multiplier range is valid (min <= max)
+      tests.push({
+        name: `${t.name} / "${groupName}": valid multiplier range`,
+        pass: groupInfo.minMult <= groupInfo.maxMult,
+        detail: `range: ${groupInfo.minMult.toFixed(2)}x – ${groupInfo.maxMult.toFixed(2)}x (${groupInfo.foods.length} foods)`,
+      });
+
+      // Verify proportional scaling: at multiple targets, foods in group maintain ratios
+      for (const persona of PERSONAS.slice(0, 2)) { // Just test 2 personas
+        const target = preWorkoutCarbTarget(persona.weightKg, 3.0);
+        const scaled = scaleTemplate(foods, target);
+
+        // Check that foods in the same group have consistent multiplier ratios
+        const groupScaled = scaled.scaledFoods.filter(f => f.scale_group === groupName);
+        if (groupScaled.length >= 2) {
+          const ratios = groupScaled.map(f => {
+            const original = foods.find(of => of.food_id === f.food_id || of.name === f.name);
+            return original && original.default_servings > 0
+              ? f.scaled_servings / original.default_servings
+              : null;
+          }).filter(r => r !== null);
+
+          if (ratios.length >= 2) {
+            const minR = Math.min(...ratios);
+            const maxR = Math.max(...ratios);
+            // Allow ±15% tolerance due to friendly-fraction snapping
+            const spread = minR > 0 ? (maxR - minR) / minR : 0;
+            tests.push({
+              name: `${t.name} / "${groupName}" @ ${persona.label}: proportional within 15%`,
+              pass: spread <= 0.15,
+              detail: `multipliers: ${ratios.map(r => r.toFixed(2)).join(', ')}, spread=${(spread * 100).toFixed(1)}%`,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  if (grouped.length === 0) {
+    tests.push({
+      name: 'No scale groups to test (add scale_group to template foods to enable)',
+      pass: true,
+      detail: 'Informational — define scale_group on food items via the editor',
+    });
+  }
+
+  return { name: '11. Scale Group Proportional Scaling', tests };
 }

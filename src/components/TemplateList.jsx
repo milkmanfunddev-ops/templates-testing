@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import TemplateEditor from './TemplateEditor';
 
-const TIMING_FILTERS = ['All', '< 30 min', '30-60 min', '1-2 hours', '3-4 hours'];
+const TIMING_FILTERS = ['All', '< 30 min', '30-90 min', '1.5-3 hours', '3-4 hours'];
 
 export default function TemplateList() {
   const [templates, setTemplates] = useState([]);
@@ -78,6 +78,7 @@ export default function TemplateList() {
             <th>Category</th>
             <th>Speed</th>
             <th>Foods</th>
+            <th>Groups</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -113,6 +114,14 @@ export default function TemplateList() {
               <td style={{ fontSize: '0.75rem' }}>{t.base_category || '-'}</td>
               <td><span className="badge badge-info">{t.digestion_speed || '-'}</span></td>
               <td>{(t.foods || []).length}</td>
+              <td style={{ fontSize: '0.65rem' }}>
+                {(() => {
+                  const grps = [...new Set((t.foods || []).map(f => f.scale_group).filter(Boolean))];
+                  return grps.length > 0
+                    ? grps.map(g => <span key={g} className="badge badge-info" style={{ marginRight: '0.1rem', fontSize: '0.55rem' }}>{g}</span>)
+                    : <span style={{ color: 'var(--text-muted)' }}>-</span>;
+                })()}
+              </td>
               <td onClick={e => e.stopPropagation()}>
                 <div className="flex gap-sm">
                   <button className="btn btn-sm" onClick={() => setEditing(t)}>Edit</button>
@@ -182,32 +191,59 @@ export default function TemplateList() {
             )}
 
             <h3>Foods ({(selected.foods || []).length} items)</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Food</th>
-                  <th>Serving</th>
-                  <th>Default</th>
-                  <th>Min</th>
-                  <th>Max</th>
-                  <th>Carbs/srv</th>
-                  <th>Total Carbs</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(selected.foods || []).map((f, i) => (
-                  <tr key={i}>
-                    <td>{f.display_name}</td>
-                    <td>{f.serving_size}</td>
-                    <td>{f.default_servings}</td>
-                    <td>{f.min_servings}</td>
-                    <td>{f.max_servings}</td>
-                    <td>{f.carbs_g}g</td>
-                    <td><strong>{(f.carbs_g * f.default_servings).toFixed(1)}g</strong></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {(() => {
+              const groups = [...new Set((selected.foods || []).map(f => f.scale_group).filter(Boolean))];
+              const GROUP_COLORS = ['#e8d5f5', '#d5e8f5', '#f5e8d5', '#d5f5e8', '#f5d5d5', '#f5f5d5'];
+              return (
+                <>
+                  {groups.length > 0 && (
+                    <div className="flex gap-sm flex-wrap" style={{ marginBottom: '0.5rem' }}>
+                      {groups.map((g, gi) => (
+                        <span key={g} style={{
+                          display: 'inline-block', padding: '0.15rem 0.5rem',
+                          borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600,
+                          backgroundColor: GROUP_COLORS[gi % GROUP_COLORS.length],
+                        }}>
+                          {g}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Food</th>
+                        <th>Serving</th>
+                        <th>Default</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Carbs/srv</th>
+                        <th>Total Carbs</th>
+                        <th>Group</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(selected.foods || []).map((f, i) => {
+                        const gi = f.scale_group ? groups.indexOf(f.scale_group) : -1;
+                        const bg = gi >= 0 ? GROUP_COLORS[gi % GROUP_COLORS.length] : undefined;
+                        return (
+                          <tr key={i} style={bg ? { backgroundColor: bg } : undefined}>
+                            <td>{f.display_name}</td>
+                            <td>{f.serving_size}</td>
+                            <td>{f.default_servings}</td>
+                            <td>{f.min_servings}</td>
+                            <td>{f.max_servings}</td>
+                            <td>{f.carbs_g}g</td>
+                            <td><strong>{(f.carbs_g * f.default_servings).toFixed(1)}g</strong></td>
+                            <td style={{ fontSize: '0.7rem' }}>{f.scale_group || '-'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              );
+            })()}
 
             {selected.notes && (
               <div style={{ marginTop: '1rem', padding: '0.5rem', background: '#f8f8f5', borderRadius: '4px', fontSize: '0.8rem' }}>

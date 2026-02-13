@@ -15,7 +15,7 @@ const PERSONAS = [
   { label: '91 kg', weightKg: 91 },
 ];
 
-const TIMING_KEYS = ['3-4 hours', '1-2 hours', '30-60 min', '< 30 min'];
+const TIMING_KEYS = ['3-4 hours', '1.5-3 hours', '30-90 min', '< 30 min'];
 const SWEAT_SODIUM_CATS = ['low', 'medium', 'high'];
 const ENV_LABELS = ['cool', 'temperate', 'moderate', 'warm', 'hot', 'very_hot'];
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-const TIMING_OPTIONS = ['< 30 min', '30-60 min', '1-2 hours', '3-4 hours'];
+const TIMING_OPTIONS = ['< 30 min', '30-90 min', '1.5-3 hours', '3-4 hours'];
 const MEAL_TYPE_OPTIONS = ['top_up', 'snack', 'full_meal'];
 const DIGESTION_OPTIONS = ['fast', 'medium', 'slow'];
 
@@ -10,7 +10,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   const [foodCatalog, setFoodCatalog] = useState([]);
   const [form, setForm] = useState({
     name: '',
-    timing_window: '1-2 hours',
+    timing_window: '1.5-3 hours',
     meal_type: 'snack',
     base_category: '',
     digestion_speed: 'medium',
@@ -54,6 +54,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
       default_servings: 1,
       min_servings: 0.25,
       max_servings: 4,
+      scale_group: null,
     };
     set('foods', [...form.foods, newFoodItem]);
   }
@@ -75,6 +76,10 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   const totalSodium = form.foods.reduce((s, f) => s + f.sodium_mg * f.default_servings, 0);
   const totalFluid = form.foods.reduce((s, f) => s + (f.fluid_ml || 0) * f.default_servings, 0);
   const totalCalories = form.foods.reduce((s, f) => s + (f.calories || 0) * f.default_servings, 0);
+
+  // Compute unique scale groups for color-coding
+  const scaleGroupNames = [...new Set(form.foods.map(f => f.scale_group).filter(Boolean))];
+  const GROUP_COLORS = ['#e8d5f5', '#d5e8f5', '#f5e8d5', '#d5f5e8', '#f5d5d5', '#f5f5d5'];
 
   // Compute allergens and excluded_diets union
   const allAllergens = [...new Set(form.foods.flatMap(f => f.allergens || []))];
@@ -191,12 +196,16 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
               <th>Carbs/srv</th>
               <th>Na/srv</th>
               <th>Fluid/srv</th>
+              <th>Scale Group</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {form.foods.map((f, i) => (
-              <tr key={i}>
+            {form.foods.map((f, i) => {
+              const groupIdx = f.scale_group ? scaleGroupNames.indexOf(f.scale_group) : -1;
+              const rowBg = groupIdx >= 0 ? GROUP_COLORS[groupIdx % GROUP_COLORS.length] : undefined;
+              return (
+              <tr key={i} style={rowBg ? { backgroundColor: rowBg } : undefined}>
                 <td><strong>{f.display_name}</strong></td>
                 <td>{f.serving_size}</td>
                 <td>
@@ -215,10 +224,17 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
                 <td>{f.sodium_mg}mg</td>
                 <td>{f.fluid_ml || 0}ml</td>
                 <td>
+                  <input style={{ width: '80px', fontSize: '0.75rem' }}
+                    value={f.scale_group || ''}
+                    placeholder="none"
+                    onChange={e => updateFood(i, 'scale_group', e.target.value || null)} />
+                </td>
+                <td>
                   <button className="btn btn-sm btn-danger" onClick={() => removeFood(i)}>×</button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
 

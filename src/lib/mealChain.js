@@ -15,15 +15,15 @@ import { filterTemplates } from './dietFilter.js';
 export const PHASE_SCHEDULE = {
   '3-4 hours': [
     { role: 'full_meal', carbPct: 0.60, timingWindows: ['3-4 hours'], mealType: 'full_meal' },
-    { role: 'snack',     carbPct: 0.25, timingWindows: ['1-2 hours'], mealType: 'snack' },
-    { role: 'top_up',    carbPct: 0.15, timingWindows: ['< 30 min', '30-60 min'], mealType: 'top_up' },
+    { role: 'snack',     carbPct: 0.25, timingWindows: ['1.5-3 hours'], mealType: 'snack' },
+    { role: 'top_up',    carbPct: 0.15, timingWindows: ['< 30 min', '30-90 min'], mealType: 'top_up' },
   ],
-  '1-2 hours': [
-    { role: 'snack',  carbPct: 0.75, timingWindows: ['1-2 hours'], mealType: 'snack' },
-    { role: 'top_up', carbPct: 0.25, timingWindows: ['< 30 min', '30-60 min'], mealType: 'top_up' },
+  '1.5-3 hours': [
+    { role: 'snack',  carbPct: 0.75, timingWindows: ['1.5-3 hours'], mealType: 'snack' },
+    { role: 'top_up', carbPct: 0.25, timingWindows: ['< 30 min', '30-90 min'], mealType: 'top_up' },
   ],
-  '30-60 min': [
-    { role: 'top_up', carbPct: 1.0, timingWindows: ['30-60 min'], mealType: 'top_up' },
+  '30-90 min': [
+    { role: 'top_up', carbPct: 1.0, timingWindows: ['30-90 min'], mealType: 'top_up' },
   ],
   '< 30 min': [
     { role: 'top_up', carbPct: 1.0, timingWindows: ['< 30 min'], mealType: 'top_up' },
@@ -32,8 +32,8 @@ export const PHASE_SCHEDULE = {
 
 const TIMING_TO_HOURS = {
   '3-4 hours': 3.0,
-  '1-2 hours': 1.5,
-  '30-60 min': 0.75,
+  '1.5-3 hours': 2.0,
+  '30-90 min': 1.0,
   '< 30 min': 0.25,
 };
 
